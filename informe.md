@@ -2,7 +2,7 @@
 
 ## 1. Introducción
 
-Este documento detalla el proceso de recolección, preservación y almacenamiento de evidencias realizado sobre el equipo comprometido **PC-IT-03** del departamento de IT, siguiendo la metodología DFIR definida por la organización.
+Este documento detalla el proceso de recolección, preservación y almacenamiento de evidencias realizado sobre el equipo comprometido **FORENSE-06** del departamento de IT, siguiendo la metodología DFIR definida por la organización.
 
 ---
 
@@ -90,4 +90,4 @@ La adquisición se realizó correctamente siguiendo los procedimientos estableci
 
 ## 7. Enlace al repositorio
 
-*(Añadir URL cuando el repositorio esté creado.)*
+[Evidencias](https://github.com/lromnav497/P02.-Incident-Investigation.git)

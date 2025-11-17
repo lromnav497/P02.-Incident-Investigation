@@ -1,118 +1,159 @@
-# 03 – Informe Técnico y Ejecutivo Completo
+# 03 – Informe forense
 
-## 📌 1. Informe Ejecutivo
+**Fecha del incidente:** 13/11/2019
+**Sistema afectado:** FORENSE-06 — Departamento IT
+**Sistema operativo:** Windows 7 SP1 x64
+**Analista:** CSIRT Interno
 
-El día **13 de noviembre de 2025**, el CSIRT detectó actividad anómala en el equipo **PC‑IT‑03** del departamento de IT. El análisis forense reveló que el sistema fue comprometido mediante la explotación del **CVE‑2018‑8174 (Double Kill)**, una vulnerabilidad crítica que permite la ejecución remota de código a través de VBScript.
+## 1. INFORME EJECUTIVO
 
-El atacante utilizó un **dropper en VBScript**, ejecutado mediante `wscript.exe`, que descargó y ejecutó dos payloads maliciosos:
+El día 13 de noviembre de 2019 se detectó actividad anómala en el equipo FORENSE-06. El análisis forense determinó que el sistema fue comprometido mediante la explotación del **CVE-2018-8174 (Double Kill)**, vulnerabilidad crítica que permite ejecución remota de código a través de VBScript.
+
+Tras la explotación, el atacante ejecutó un **dropper en VBScript** que lanzó dos payloads:
 
 * `QkryuzzwVu.exe`
 * `KzcmVNSNkYkueQf.exe`
 
-Ambos intentaron conectarse a un servidor C2 en la IP **10.28.5.1** utilizando los puertos **8081** y **53**, sin éxito (estado SYN_SENT).
+Ambos intentaron comunicarse con un **servidor C2** en la IP `10.28.5.1`, sin lograr conexión efectiva.
 
-### **Impacto**
+Se detectó también la presencia de **KMSPico**, herramienta de activación ilegal asociada a malware, aumentando el riesgo de exposición previa.
 
-* Ejecución remota de código en el equipo.
-* Riesgo de descarga de malware adicional.
-* No se detectó movimiento lateral ni persistencia.
-* No se observaron daños en servicios del sistema.
+El análisis evaluó la posible explotación de **EternalBlue (CVE-2017-0144)**, debido a que Windows 7 SP1 es vulnerable. No se encontraron evidencias de uso exitoso, aunque el riesgo era significativo.
 
-### **Recomendaciones**
+### Impacto del incidente
 
-1. Instalar todas las actualizaciones pendientes, especialmente el parche para CVE‑2018‑8174.
-2. Restringir o deshabilitar VBScript en sistemas Windows.
-3. Bloquear `wscript.exe` mediante AppLocker.
-4. Desplegar un EDR con detección de scripting malicioso.
-5. Realizar formación contra phishing.
+* Ejecución remota de código.
+* Ejecución de malware en memoria.
+* Intentos de comunicación con C2.
+* Riesgo elevado por presencia de software crackeado.
+* No se identificó movimiento lateral, persistencia ni exfiltración.
 
----
+### Recomendaciones principales
 
-## 📌 2. Informe Técnico Detallado
+1. Aplicar los parches para **CVE-2018-8174** y **CVE-2017-0144**.
+2. Eliminar **KMSPico** y realizar reinstalación limpia del sistema.
+3. Deshabilitar **VBScript** y `wscript.exe` mediante AppLocker.
+4. Implementar **EDR con heurística** para scripting y explotación.
+5. Reforzar segmentación de red y auditorías periódicas.
+6. Capacitación sobre documentos maliciosos.
 
-### 2.1 Contexto
+## 2. INFORME TÉCNICO DETALLADO
 
-El equipo afectado ejecutaba **Windows 7 SP1 x64**. Se realizó adquisición live de memoria, disco y logs del sistema.
+### 2.1. Contexto
 
-**Evidencias recolectadas:**
+El equipo comprometido ejecutaba Windows 7 SP1 x64 con múltiples parches faltantes, incluyendo CVE-2018-8174 y CVE-2017-0144.
 
-* `memdump.mem`
-* `disco.E01`
-* Listados: tasklist, netstat, netscan, etc.
+**Evidencias adquiridas:**
 
-### 2.2 Análisis de Memoria
+* Volcado de memoria: `memdump.mem`
+* Imagen de disco: `disco.E01`
+* Listados: `tasklist`, `netstat`, `evtlogs`, `netscan`
 
-Se identificaron dos procesos sospechosos:
+### 2.2. Vector de Compromiso Confirmado: CVE-2018-8174
 
-* `QkryuzzwVu.exe` (PID 944)
-* `KzcmVNSNkYkueQf.exe` (PID 2960)
+**Descripción:**
+Vulnerabilidad que permite ejecución remota de código mediante **VBScript** incrustado en documentos maliciosos (generalmente Word), explotado a través de `wscript.exe`.
 
-Ambos fueron ejecutados por **wscript.exe**, indicador de dropper en VBScript.
+**Indicadores observados:**
 
-### 2.3 Análisis de Red
+* Ejecución de `wscript.exe` sin interacción del usuario.
+* Lanzamiento de payloads directamente desde memoria.
+* Procesos huérfanos con comportamiento de dropper.
 
-Intentos de conexión saliente:
+### 2.3. Procesos Maliciosos Identificados
 
-* `QkryuzzwVu.exe` → 10.28.5.1:8081 (SYN_SENT)
-* `KzcmVNSNkYkueQf.exe` → 10.28.5.1:53 (SYN_SENT)
+**QkryuzzwVu.exe**
 
-### 2.4 Vector de Compromiso
-
-El comportamiento del sistema confirma la explotación del:
-
-# **CVE‑2018‑8174 – "Double Kill" (VBScript RCE)**
-
-### 2.5 Herramienta de Hacking
-
-El atacante utilizó:
-
-# **Un dropper en VBScript (VBS) ejecutado mediante `wscript.exe`**
-
-No se emplearon frameworks como Metasploit, Cobalt Strike o Sliver.
-
-### 2.6 Evaluación del Daño
-
-* No hay persistencia detectada.
-* No hay exfiltración registrada.
-* Malware no logró comunicación con el C2.
-
----
-
-## 📌 3. Conclusiones
-
-El atacante explotó CVE‑2018‑8174 mediante un documento malicioso que ejecutó un VBScript. Este descargó y ejecutó dos payloads que intentaron comunicarse sin éxito con un servidor C2. La respuesta temprana evitó daños mayores.
-
----
-
-## 📌 4. Anexo de Evidencias
-
-### A1 – `QkryuzzwVu.exe`
-
-* Tipo: Payload malicioso
-* Estado: Solo en memoria
 * PID: 944
-* Padre: `wscript.exe`
-* Conexión: 10.28.5.1:8081 (SYN_SENT)
-* Hash: No disponible
+* Padre: wscript.exe
+* Actividad: intento de conexión a C2 (10.28.5.1)
+* Estado: SYN_SENT
+* Localización: memoria (no en disco)
 
-### A2 – `KzcmVNSNkYkueQf.exe`
+**KzcmVNSNkYkueQf.exe**
 
-* Tipo: Payload malicioso
 * PID: 2960
-* Padre: `wscript.exe`
-* Conexión: 10.28.5.1:53 (SYN_SENT)
+* Padre: wscript.exe
+* Actividad: intento de conexión a C2 (10.28.5.1)
+* Estado: SYN_SENT
 
-### A3 – Proceso padre `wscript.exe`
+**Proceso ejecutor:** `wscript.exe` (PIDs 2816 y 2824)
 
-* PIDs: 2816 / 2824
-* Función: Ejecución del dropper VBS
+* Rol: ejecución del dropper VBS responsable de lanzar ambos payloads.
 
-### A4 – Integridad del disco
+### 2.4. Análisis de Conectividad
 
-* Archivo: `disco.E01`
+| Proceso             | Puerto | IP C2     | Estado   |
+| ------------------- | ------ | --------- | -------- |
+| QkryuzzwVu.exe      | 8081   | 10.28.5.1 | SYN_SENT |
+| KzcmVNSNkYkueQf.exe | 53     | 10.28.5.1 | SYN_SENT |
+
+> Sin conexión establecida, evitando ejecución adicional de órdenes remotas.
+
+### 2.5. Posible Uso de EternalBlue (CVE-2017-0144)
+
+**Análisis exploratorio:** no indicio de explotación.
+
+* Sistema corría Windows 7 SP1
+* SMBv1 habilitado
+* MS17-010 no instalado
+
+**Resultado:**
+
+* No se encontraron procesos relacionados con `lsass.exe` inyectados.
+* No hubo creación de servicios sospechosos.
+* No se identificaron anomalías en el log 4624 tipo 3.
+
+> Conclusión: EternalBlue no fue utilizado, aunque el riesgo era crítico.
+
+### 2.6. Evidencia de KMSPico
+
+* Carpeta: `C:\Program Files\KMSpico\`
+* Ejecutable: `AutoPico.exe`
+* Tareas programadas asociadas
+
+**Relevancia:** crack con malware embebido, puerta de entrada previa y riesgo persistente.
+
+### 2.7. Evaluación del Daño
+
+| Componente           | Resultado                           |
+| -------------------- | ----------------------------------- |
+| Persistencia         | No detectada                        |
+| Movimiento lateral   | No observado                        |
+| Exfiltración         | No evidenciada                      |
+| Conexión C2          | No establecida                      |
+| Integridad del disco | Comprometida por software crackeado |
+| Nivel de riesgo      | Alto                                |
+
+## 3. CONCLUSIONES
+
+* Compromiso mediante CVE-2018-8174, ejecución de dropper en VBScript y despliegue de dos payloads.
+* Intentos de comunicación con C2 no concretados.
+* KMSPico debilitó la seguridad y pudo facilitar la intrusión.
+* No se evidenció explotación de EternalBlue.
+* Contención rápida gracias a detección temprana.
+
+## 4. ANEXO DE EVIDENCIAS
+
+**A1 — QkryuzzwVu.exe**
+
+* Tipo: Payload malicioso en memoria
+* PID: 944
+* Conexión: 8081 → 10.28.5.1
+* Hash: N/A (no en disco)
+
+**A2 — KzcmVNSNkYkueQf.exe**
+
+* Tipo: Malware
+* PID: 2960
+* Conexión: 53 → 10.28.5.1
+
+**A3 — wscript.exe**
+
+* Proceso ejecutor del dropper VBS
+* PIDs: 2816, 2824
+
+**A4 — Disco (E01)**
+
 * MD5: 77caee16ef4f58421e5686572656bb07
 * SHA1: b8fd3876617625d3f47018203ca15c1bbd1ae9c8
-
----
-
-**Fin del informe**
